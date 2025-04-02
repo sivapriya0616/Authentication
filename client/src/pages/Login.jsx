@@ -25,7 +25,7 @@ const Login = () => {
         .then((res) => {
           if (res.data.Login) {
             // Login success: redirect to the home page
-            navigate("/"); // Redirect to homepage on success
+            navigate("/Home"); // Redirect to homepage on success
           } else {
             // Invalid login credentials or user doesn't exist
             setError(res.data.Message || "Invalid credentials, please try again.");

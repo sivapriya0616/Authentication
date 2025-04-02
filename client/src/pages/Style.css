@@ -39,6 +39,7 @@ body {
   /* Login & Register Form Container */
   .login-container,
   .register-container {
+    margin-top: 100px;
     display: flex;
     justify-content: center;
     align-items: center;

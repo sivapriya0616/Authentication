@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const Register = () => {
+  const [name, setName] = useState("");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -28,8 +30,8 @@ const Register = () => {
     // Check if the required fields are filled
     if (email && password && confirmPassword) {
       axios
-        .post("http://localhost:5001/Register", { email, password })
-        .then((res) => {
+      axios
+      .post("http://localhost:5001/Register", { name, email, password })        .then((res) => {
           console.log(res);
           setSuccess("Registration successful! You can now log in.");
           setError("");
@@ -40,11 +42,13 @@ const Register = () => {
           // Handle error from the backend, like user already existing
           console.log(err);
           if (err.response && err.response.data.Message === "User already exists") {
+            setName("");
             setEmail("");  // Clear email input
             setPassword("");
             setConfirmPassword("");
             setError("This email is already registered. Please use a different one.");
           } else {
+            setName("");
             setEmail("");  // Clear email input
             setPassword("");
             setConfirmPassword("");
@@ -62,6 +66,15 @@ const Register = () => {
       <div className="register-box">
         <h2>Register</h2>
         <form onSubmit={handleSubmit}>
+        <div className="input-container">
+            <label>UserName</label>
+            <input
+              // type="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
           <div className="input-container">
             <label>Email</label>
             <input
