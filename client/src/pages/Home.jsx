@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom"; // Corrected import
 
-const HomePage = () => {
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
+import axios from "axios";
+
+const Home = ({ handleLogout }) => {
   const [name, setName] = useState("");
-  const navigate = useNavigate(); // Renamed from 'Navigate' to avoid conflict
-  axios.defaults.withCredentials = true;
+  const navigate = useNavigate();
 
   useEffect(() => {
-    axios
-      .get('http://localhost:5001') // The API call
+    axios.get("http://localhost:5001", { withCredentials: true })
       .then(res => {
         if (res.data.valid) {
           setName(res.data.name); // If valid, set the user's name
@@ -19,15 +19,22 @@ const HomePage = () => {
       })
       .catch(err => {
         console.error(err); // Log any errors from the API call
-        // alert('An error occurred while checking session status'); 
       });
-  }, []); 
+  }, []);
 
   return (
     <div className="homepage">
-      <h1>Welcome {name}</h1>
+      <nav className="nav2">
+        <ul className="nav1">
+          <li className="navv">Welcome, {name}</li>
+          <li>
+            <button className=" logout" onClick={handleLogout}>Logout</button>
+          </li>
+        </ul>
+      </nav>
+      <h1>Welcome to the Home Page</h1>
     </div>
   );
 };
 
-export default HomePage;
+export default Home;
