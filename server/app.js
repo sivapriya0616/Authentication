@@ -4,13 +4,9 @@ import dotenv from "dotenv";
 import cors from "cors";
 import bodyParser from "body-parser";
 import bcrypt from 'bcryptjs'; // Import bcrypt for password hashing
-// import jwt from "jsonwebtoken";
+// import jwt from "jsonwebtoken"; // Uncomment if using JWT
 import cookieParser from "cookie-parser"; 
- // Import cookie-parser
- import session from 'express-session';
-
-
-
+import session from 'express-session';
 
 const app = express();
 
@@ -41,19 +37,25 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(session({
     secret: 'secret',
-    resave: false,//Prevents saving the session if nothing has changed
+    resave: false, // Prevents saving the session if nothing has changed
     saveUninitialized: false,
-    cookie: { secure: false,
+    cookie: { 
+        secure: false,  // Use true if using HTTPS
         httpOnly: true,
-        maxAge: 30 * 24 * 60 * 1000 // 30 days
-     }
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    }
 }));
 
 app.use(bodyParser.json());  // Allow JSON data in the request body
 
 // Register Route
 app.post("/Register", async (req, res) => {
-    const { name,email, password } = req.body;
+    const { name, email, password } = req.body;
+
+    // Validate input
+    if (!name || !email || !password) {
+        return res.status(400).json({ Message: "Please fill in all fields" });
+    }
 
     // Check if the user already exists
     db.query('SELECT * FROM users WHERE EMAIL = ?', [email], async (err, results) => {
@@ -68,8 +70,8 @@ app.post("/Register", async (req, res) => {
             // Hash the password before storing it in the database
             const hashedPassword = await bcrypt.hash(password, 10); // 10 salt rounds
 
-            const query = "INSERT INTO users (EMAIL, PASS,USERNAME) VALUES (?)";
-            const values = [email, hashedPassword,name];
+            const query = "INSERT INTO users (EMAIL, PASS, USERNAME) VALUES (?)";
+            const values = [email, hashedPassword, name];
 
             // Execute the query to insert the new user
             db.query(query, [values], (err, result) => {
@@ -86,8 +88,13 @@ app.post("/Register", async (req, res) => {
 });
 
 // Login Route
-app.post('/Login', (req, res) => {
-    const { name,email, password } = req.body;
+app.post('/Login', async (req, res) => {
+    const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+        return res.status(400).json({ Message: "Please provide both email and password" });
+    }
 
     // Query to find the user by email
     const query1 = "SELECT * FROM users WHERE EMAIL = ?";
@@ -106,22 +113,12 @@ app.post('/Login', (req, res) => {
             const isMatch = await bcrypt.compare(password, user.PASS);
 
             if (isMatch) {
-                req.session.name=result[0].USERNAME;
-                console.log(req.session.name);
+                req.session.name = result[0].USERNAME; // Store username in session
+                console.log("Logged in as:", req.session.name);
                 
-
-
-                // const id = result[0].ID;
-                // const token = jwt.sign({ id: id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
-                // console.log("The token is: " + token);
-
-                // const cookieOptions = {
-                //     expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES * 24 * 60 * 60 * 1000),  // Convert days to milliseconds
-                //     httpOnly: true,  // Prevent client-side JavaScript access to the cookie
-                // };
-
-                // // Set the cookie with the token
-                // res.cookie("priya", token, cookieOptions);
+                // Uncomment and use JWT if needed
+                // const token = jwt.sign({ id: user.ID }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
+                // res.cookie("auth_token", token, { httpOnly: true, secure: false });
 
                 // Respond with the login success
                 res.status(200).json({ Login: true, message: "Login successful" });
@@ -132,6 +129,26 @@ app.post('/Login', (req, res) => {
             return res.status(401).json({ Login: false, Message: "User not found" });
         }
     });
+});
+
+// Logout Route
+app.post('/Logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).json({ Message: "Error logging out" });
+        }
+        res.clearCookie('connect.sid'); // Clear the session cookie
+        res.status(200).json({ Message: "Logout successful" });
+    });
+});
+
+// Get Route for Session Validation
+app.get('/', (req, res) => {
+    if (req.session.name) {
+        return res.json({ valid: true, name: req.session.name });
+    } else {
+        return res.json({ valid: false });
+    }
 });
 
 // Start the server
