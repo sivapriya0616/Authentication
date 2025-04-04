@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import open from "../assets/open.jpg";
@@ -14,6 +14,22 @@ const Login = () => {
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible); // Toggle between true and false
   };
+  axios.defaults.withCredentials = true; // Enable sending cookies with requests
+  useEffect(() => {
+    axios
+      .get('http://localhost:5001') // The API call
+      .then(res => {
+        if (res.data.valid) {
+          navigate('/'); // If valid, set the user's name
+        } else {
+          navigate('/login'); // Redirect to login if the session is invalid
+        }
+      })
+      .catch(err => {
+        console.error(err); // Log any errors from the API call
+        // alert('An error occurred while checking session status'); // Basic error alert
+      });
+  }, []); 
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -25,7 +41,7 @@ const Login = () => {
         .then((res) => {
           if (res.data.Login) {
             // Login success: redirect to the home page
-            navigate("/Home"); // Redirect to homepage on success
+            navigate("/"); // Redirect to homepage on success
           } else {
             // Invalid login credentials or user doesn't exist
             setError(res.data.Message || "Invalid credentials, please try again.");
