@@ -190,7 +190,7 @@ db.connect((err) => {
 // Enable CORS for all origins
 app.use(
   cors({
-    origin: "http://localhost:5173", // Allow requests only from your frontend server
+    origin: "http://localhost:5174", // Allow requests only from your frontend server
     methods: ["GET", "POST", "PUT", "DELETE"], // Specify the allowed HTTP methods
     credentials: true, // Allow credentials (cookies, sessions, etc.)
   })
